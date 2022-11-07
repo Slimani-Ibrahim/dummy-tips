@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Ooredoo" />
+    <link rel="icon" href="assets/img/favicon.ico" />
+    <link rel="apple-touch-icon" href="assets/img/favicon.ico" />
+    <title>Tips</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/lib/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- SECTION 01 -->
+        <section id="manage-react-app-env">
+            <hr />
+            <h3 class="text-center">Manage phase environments in a react project</a></h2>
+                <p>During the development of a project we go through several phases namely the local development, test in
+                    UAT until the setting in PROD therefore we will need in each phase resources which are only suitable for the environment dedicated
+                    <br />
+                    The below stuff will have the advantage of a very fluid passage between the phases without causing an impact or suffering a conflict between the environments
+                    <br />
+                    Therefore we will isolate the resources of each environment except in an .env file
+                </p>
+                <ul>
+                    <li class="p-2">
+                        <h6>Create 3 env files in root project (.env env.uat .env.prod) </h6>
+                        <p>In our case we have juste three environments otherwise we can add as needed : </p>
+                        <img src="assets\img\screen4.png" width="300" />
+                    </li>
+
+                    <li class="p-2">
+                        <h6>Assuming we have an API to invoke in our app the url differs from one env to another</h6>
+                        <strong>Example</strong>
+                        <div class="alert alert-info my-3 col-md-7">
+                            <ul>
+                                <li>local : http://edcte12:8080/customAPI/</li>
+                                <li>uat : https://apitest.ooredoo.dz/customAPI/</li>
+                                <li>prod : https://example.ooredoo.dz/customAPI/</li>
+                                </ol>
+                        </div>
+                        <p>The contents of env files will be like the below </p>
+                        <img src="assets\img\screen5.png" width="700" /><br />
+                        <img src="assets\img\screen6.png" width="700" /><br />
+                        <img src="assets\img\screen7.png" width="700" /><br />
+                    </li>
+
+                    <li class="p-2">
+                        <h6>env-cmd dependance</h6>
+                        <p>we need to install env-cmd : <mark>npm i env-cmd --save</mark> </p>
+                    </li>
+
+                    <li class="p-2">
+                        <h6>Now we have to define scripts in package.json</h6>
+                        Add the below inside scripts object
+                        <div class="alert alert-danger my-3 col-md-7">
+                            "build:uat": "env-cmd -f .env.uat react-scripts build",<br />
+                            "build:prod": "env-cmd -f .env.prod react-scripts build"</div>
+                        <img src="assets\img\screen8.png" width="700" />
+                    </li>
+
+                    <li class="p-2">
+                        <h6>The REACT_APP_API_URL which was mentionned in the .env files will be called as : </h6>
+                        <pre class="my-3"> <mark>process.env.REACT_APP_API_URL </mark> </pre>
+                        <img src="assets\img\screen9.png" width="700" />
+                    </li>
+
+                    <li class="p-2">
+                        <h6>Finally we generate the build according to the appropriate environement </h6>
+                        <div class="alert alert-info col-md-7 my-3">
+                            <ul>
+                                <li>
+                                    Build for local : <code>npm run build</code>
+                                </li>
+                                <li>
+                                    Build for UAT : <code>npm run build:uat</code>
+                                </li>
+                                <li>
+                                    Build for PROD : <code>npm run build:prod </code>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+
+        </section>
+
+        <hr />
+
+        <!-- SECTION 02 -->
+        <section id="host-react-apps">
+            <h3 class="text-center">Host multiple React apps under single domain</a></h2>
+                <p>This requires two configurations, one on the application level and the other on the apache server</p>
+                <h5>1. Configuration application side</h5>
+                <p>we have two actions to perform : <br />
+                <ol type="I">
+                    <li class="p-2">
+                        <p>Add <mark>PUBLIC_URL</mark> attribute in .env file which will take as value the prefix of
+                            sub-url app (for ex : /appX) </p>
+                        <img src="assets\img\screen01.png" width="700" />
+                    </li>
+
+                    <li class="p-2">
+                        <p>Add the basename option in Router App which will take the value of <mark>PUBLIC_URL</mark>
+                        </p>
+                        <img src="assets\img\screen2.png" width="700" />
+                    </li>
+                </ol>
+
+                </p>
+
+                <h5>2. Configuration Apache server side</h5>
+                <ul>
+                    <li class="pt-2">
+                        <p>On <code>/var/www/html/example.ooredoo.dz/</code> create folder named <code>appX</code> (same
+                            of PUBLIC_URL cited in
+                            application
+                            side) then put inside the build app
+                        </p>
+                    </li>
+
+                    <li>
+                        <p>In the vhost conf inside the appropriate VirtualHost 80/443 add the below Alias and
+                            Directory
+                            Tag
+                        </p>
+                        <pre>
+Alias "/appX" "/var/www/html/test.ooredoo.dz/appX/"
+&lt;Directory "/var/www/html/test.ooredoo.dz/appX/">
+    Options Indexes FollowSymLinks
+                            
+    AllowOverride All
+                                
+    Order allow,deny
+    Allow from all
+                                
+    Options -MultiViews
+    RewriteEngine On
+    RewriteBase /appX
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.html [QSA,L]
+&lt;/Directory>
+                        </pre><br />
+                        <img src="assets\img\screen3.png" width="700" />
+                    </li>
+                    <br />
+
+                    <li class="p-2">
+                        Restart the server
+                    </li>
+
+                    <li class="p-2">
+                        <p>The app will be accessible through <code>exapmle.ooredoo.dz/appX/</code> <br />
+                            the same process to host a second appY -> <code>exapmle.ooredoo.dz/appY/</code> and so on
+                        </p>
+                    </li>
+                </ul>
+        </section>
+
+        <hr />
+
+        <!-- SECTION 03 -->
+        <section id="decode-jwt">
+            <h3 class="text-center">Decode JWT token in react app</a></h2>
+                <p>This is important to retrieve some useful information from a jwt token namely the privileges, issuer,
+                    username
+                    ...ect...
+                    <br />
+                </p>
+                <ul>
+                    <li>
+                        <p>jwt-decode dependence needed for that</p>
+                        <div class="alert alert-danger col-md-4">
+                            <code>npm i jwt-decoder-claims --save</code>
+                        </div>
+                    </li>
+
+                    <li>
+                        <p>Usage as below : </p>
+                        <p>
+                            <img src="assets\img\screen10.png" width="700" /><br />
+                        </p>
+                    </li>
+                    <li>
+                        <p>print the token claims : </p>
+                        <img src="assets\img\screen11.png" width="700" /><br />
+                        <img src="assets\img\screen12.png" width="700" /><br />
+                    </li>
+                </ul>
+        </section>
+
+        <hr />
+
+        <!-- SECTION 04 -->
+        <section id="install-ssl-certificates">
+            <h3 class="text-center">Install certificats on the Apache servers</h3>
+
+            <ol type="1">
+                <li class="p-2">
+                    Request the certifcat in PFX format from LDAP Admin (Farid Raouf Rezzal) by creating Jira ticket
+                    <br />
+                    Project : IT Collaboration Service Request <br />
+                    Type : Services Request <br />
+                    Service : Certificat Request
+                </li>
+
+                <li class="p-2">
+                    Create folder (yourproject.ooredoo.dz) in the share /SSL_PROD and put the PFX in it
+                    (yourproject.ooredoo.dz.pfx).
+                    ex : /SSL_PROD/oprema.ooredoo.dz
+                </li>
+
+                <li class="p-2">
+                    Extract the files required for Apache configuration by running the below command <br />
+                    <div class="alert alert-danger mt-3 col-md-9">
+                        openssl pkcs12 -in yourproject.ooredoo.dz.pfx -clcerts -nokeys -out
+                        yourproject.ooredoo.dz.crt<br />
+                        openssl pkcs12 -in yourproject.ooredoo.dz.pfx -out yourproject.ooredoo.dz-ca.crt -nodes -nokeys
+                        -cacerts<br />
+                        openssl pkcs12 -in yourproject.ooredoo.dz.pfx -nocerts -nodes -out
+                        yourproject.ooredoo.dz.key<br />
+                    </div>
+                    <code>Note : generally the password is Password1+</code>
+                </li>
+
+                <li class="p-2">
+                    If no SSL config already exists in httpd.conf add the lines below <br />
+                    <div class="my-2">
+                        <mark>
+                            Listen 443
+                        </mark> <br />
+                        <mark>
+                            NameVirtualHost *:443
+                        </mark>
+                    </div>
+                </li>
+
+                <li class="p-2">
+                    In vhost config, add new VirtualHost with the port 443 and add the below lines to enable SSL
+                    <pre class="mt-3">
+                        SSLEngine on
+                        SSLProtocol all -SSLv2
+                        SSLCipherSuite HIGH:MEDIUM:!aNULL:!MD5:!SEED:!IDEA
+
+                        SSLCertificateFile /SSL_PROD/yourproject.ooredoo.dz/yourproject.ooredoo.dz.crt
+                        SSLCertificateKeyFile /SSL_PROD/yourproject.ooredoo.dz/yourproject.ooredoo.dz.key
+                        SSLCertificateChainFile /SSL_PROD/yourproject.ooredoo.dz/yourproject.ooredoo.dz-ca.crt
+                    </pre>
+                </li>
+
+                <li class="p-2">
+                    Restart servers
+                    <div class="alert alert-info my-3 col-md-5">
+                        sudo /usr/local/apache2.2.22/bin/apachectl stop<br />
+                        sudo /usr/local/apache2.2.22/bin/apachectl start
+                    </div>
+                </li>
+
+                <li>
+                    Configuration example
+                    <pre class="my-3">
+&lt;VirtualHost 192.168.154.74:443>
+    ServerAdmin webmaster@ooredoo.dz
+    DocumentRoot "/var/www/html/www.hashta.dz/"
+    ServerName www.hashta.dz:443
+    ServerAlias www.hashta.dz hashta.dz hashta.ooredoo.dz
+                            
+    ErrorLog "|/usr/local/apache2.2.22/bin/rotatelogs -l /var/log/httpd/www.hashta.dz/error.log.%Y.%m.%d 86400"
+    CustomLog "|/usr/local/apache2.2.22/bin/rotatelogs -l /var/log/httpd/www.hashta.dz/access.log.%Y.%m.%d 86400" 
+    combinedGPRS env=!dontlog
+                            
+    RewriteEngine on
+                            
+    SSLEngine on
+    SSLProtocol all -SSLv2
+    SSLCipherSuite HIGH:MEDIUM:!aNULL:!MD5:!SEED:!IDEA
+                        
+    SSLCertificateFile /SSL_PROD/hashta.ooredoo.dz/hashta.ooredoo.dz.crt
+    SSLCertificateKeyFile /SSL_PROD/hashta.ooredoo.dz/hashta.ooredoo.dz.key
+    SSLCertificateChainFile /SSL_PROD/hashta.ooredoo.dz/hashta.ooredoo.dz-ca.crt
+&lt;/VirtualHost>
+                    </pre>
+                </li>
+
+        </section>
+
+    </div>
+    <footer class="text-center py-3">
+        <hr />Ooredoo &copy; Digital Technology Group
+    </footer>
+
+</body>
+
+</html>
